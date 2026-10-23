@@ -20,7 +20,7 @@
 
 ### 使用
 
-1. 运行 `UndoExtract.exe`，把压缩包拖进窗口。解压位置默认为压缩包所在文件夹。
+1. 从 [Releases](https://github.com/yimu-aiden/UndoExtract/releases/latest) 下载 `UndoExtract-*-win64.zip`，解压后运行 `UndoExtract.exe`，把压缩包拖进窗口。解压位置默认为压缩包所在文件夹。
 2. 如果解压到了其他位置，把该文件夹拖进窗口，或点“选择…”。加密压缩包需填写密码后点“扫描”。
 3. 检查列表，点“删除”列或按空格切换选中。
 4. 点“删除选中”。
@@ -82,7 +82,7 @@ Undo an unzip: finds and deletes the files extracted from an archive, using the 
 
 ### Usage
 
-1. Run `UndoExtract.exe` and drop the archive onto the window. Location defaults to the archive's folder.
+1. Download `UndoExtract-*-win64.zip` from [Releases](https://github.com/yimu-aiden/UndoExtract/releases/latest), extract it, run `UndoExtract.exe`, and drop the archive onto the window. Location defaults to the archive's folder.
 2. If it was extracted elsewhere, drop that folder onto the window or click **Browse…**. For encrypted archives, enter the password and click **Scan**.
 3. Review the list. Click the **Delete** column or press Space to toggle selection.
 4. Click **Delete selected**.
