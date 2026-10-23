@@ -6,6 +6,7 @@ import ctypes
 import json
 import os
 import queue
+import re
 import shutil
 import subprocess
 import sys
@@ -19,7 +20,7 @@ from dataclasses import dataclass
 from tkinter import filedialog, messagebox, ttk
 from tkinter import font as tkfont
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 TAR_SUFFIXES = (".tar", ".tar.gz", ".tgz", ".tar.bz2", ".tbz2", ".tbz", ".tar.xz", ".txz", ".tar.zst", ".tzst")
 
@@ -50,6 +51,7 @@ STRINGS = {
         "delete": "删除选中",
         "match": "一致",
         "match_size": "一致（仅大小）",
+        "renamed": "改名的副本",
         "overwritten": "覆盖了原文件",
         "size": "大小不同",
         "content": "内容不同",
@@ -102,6 +104,7 @@ STRINGS = {
         "delete": "Delete selected",
         "match": "Match",
         "match_size": "Match (size only)",
+        "renamed": "Renamed copy",
         "overwritten": "Overwrote original",
         "size": "Size differs",
         "content": "Content differs",
@@ -317,6 +320,7 @@ def scan(archive, target, password="", use_crc=True, progress=lambda key, **kw: 
             status, reason = MATCH, "match_size"
         items.append(Item(rel, full, status, reason, size))
     mark_overwritten(items, files, archive)
+    items += find_renamed_copies(items, files, target, archive, use_crc)
     items.sort(key=lambda i: (STATUS_ORDER[i.status], i.rel.lower()))
     return items, dirs
 
@@ -374,6 +378,63 @@ def mark_overwritten(items, entries, archive, slack=60):
             continue
         if change - birth > slack and (birth < archive_birth - 2 or archive_birth > change):
             i.status, i.reason = OVERWRITTEN, "overwritten"
+
+
+# 解压时遇到重名、选择“自动重命名”后生成的名字：7-Zip 为 a_1.txt，WinRAR 为 a(1).txt，资源管理器等为 a (1).txt
+RENAME_SUFFIX = r"(?:_\d+|\(\d+\)| \(\d+\))"
+
+
+def find_renamed_copies(items, entries, target, archive, use_crc):
+    """找出解压时因重名被自动改名的副本，返回新的条目。
+
+    只在原名位置已有文件（发生过重名）时查找；副本内容必须与压缩包一致（CRC，没有 CRC 时比修改时间），
+    并且是压缩包出现之后才创建的，避免把以前留下的同名副本算进来（判断方式同 mark_overwritten）。
+    """
+    if not use_crc:
+        return []  # 改名副本只靠内容认定，关闭校验时不找
+    try:
+        archive_birth, _ = file_times(archive)
+    except OSError:
+        return []
+    # 压缩包里本来就有的名字：自身比对一致就不是副本；不一致时可能是别的文件改名占了它的位置
+    by_path = {os.path.normcase(i.rel): i for i in items}
+    listings, found = {}, []
+    for item in items:
+        if item.status == MISSING:
+            continue
+        e = entries[item.rel]
+        parent, name = os.path.split(item.rel)
+        stem, ext = os.path.splitext(name)
+        pattern = re.compile(re.escape(stem) + RENAME_SUFFIX + re.escape(ext), re.IGNORECASE)
+        if parent not in listings:
+            try:
+                listings[parent] = os.listdir(os.path.join(target, parent))
+            except OSError:
+                listings[parent] = []
+        for candidate in listings[parent]:
+            rel = os.path.join(parent, candidate)
+            full = os.path.join(target, rel)
+            existing = by_path.get(os.path.normcase(rel))
+            if not pattern.fullmatch(candidate) or (existing and existing.status != DIFF) or not os.path.isfile(full):
+                continue
+            if os.path.getsize(full) != e.size:
+                continue
+            if e.crc is not None:
+                same = file_crc(full) == e.crc
+            elif e.mtime is not None:
+                same = abs(os.path.getmtime(full) - e.mtime) <= 2
+            else:
+                continue  # 只能比大小时不认，免得误删
+            try:
+                birth, change = file_times(full)
+            except OSError:
+                continue
+            if same and (birth >= archive_birth - 2 or archive_birth > change):
+                if existing:
+                    existing.status, existing.reason = MATCH, "renamed"
+                else:
+                    found.append(Item(rel, full, MATCH, "renamed", e.size))
+    return found
 
 
 # ---------------------------------------------------------------- 删除

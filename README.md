@@ -13,6 +13,7 @@
 - 按完整路径比对，包括解压进已有同名文件夹的文件
 - 比对大小和 CRC，内容一致的文件才默认选中
 - 识别解压时被覆盖的原有文件（红色）
+- 识别因重名被自动改名的副本（如 `a_1.txt`、`a(1).txt`）
 - 删除到回收站，并移除变空的文件夹
 - 支持 7-Zip 能打开的格式（zip、7z、rar、tar.gz 等），支持加密压缩包
 - 中英文界面，右上角切换
@@ -31,6 +32,7 @@
 |---|---|---|
 | 一致 | 是 | 大小和 CRC 与压缩包一致 |
 | 一致（仅大小） | 是 | 压缩包无 CRC（如 tar），只比对了大小 |
+| 改名的副本 | 是 | 解压时因重名被自动改名，内容与压缩包一致 |
 | 覆盖了原文件 | 否 | 内容一致，但该位置原有同名文件被覆盖 |
 | 大小不同 / 内容不同 / 时间不同 | 否 | 与压缩包不一致 |
 | 不存在 | — | 文件夹中没有此文件 |
@@ -39,7 +41,7 @@
 
 - 被覆盖文件的原内容无法恢复，可尝试 右键 → 属性 → 以前的版本。
 - 解压中途取消时，未写完的文件显示为“内容不同”或“大小不同”，需手动选中。
-- 解压时自动重命名的文件（如 `a (1).txt`）不会被识别。
+- 改名副本支持 `a_1.txt`（7-Zip）、`a(1).txt`（WinRAR）、`a (1).txt` 三种格式，需开启 CRC 校验。
 - U 盘和网络位置没有回收站，删除即为永久删除。
 - 覆盖识别仅适用于 NTFS 磁盘。
 - exe 未签名，Windows 可能提示“已保护你的电脑”，点“更多信息 → 仍要运行”。
@@ -75,6 +77,7 @@ Undo an unzip: finds and deletes the files extracted from an archive, using the 
 - Matches by full path, including files extracted into existing folders
 - Compares size and CRC; only matching files are selected by default
 - Detects existing files that were overwritten by the extraction (red)
+- Detects copies auto-renamed because of a name conflict (e.g. `a_1.txt`, `a(1).txt`)
 - Deletes to the Recycle Bin and removes folders left empty
 - Supports any format 7-Zip can open (zip, 7z, rar, tar.gz, …), including encrypted archives
 - Chinese and English UI, switch in the top-right corner
@@ -93,6 +96,7 @@ Undo an unzip: finds and deletes the files extracted from an archive, using the 
 |---|---|---|
 | Match | Yes | Size and CRC match the archive |
 | Match (size only) | Yes | The archive has no CRC (e.g. tar); only size was compared |
+| Renamed copy | Yes | Auto-renamed during extraction because of a name conflict; contents match the archive |
 | Overwrote original | No | Contents match, but an existing file at this path was overwritten |
 | Size / Content / Time differs | No | Differs from the archive |
 | Missing | — | Not in the folder |
@@ -101,7 +105,7 @@ Undo an unzip: finds and deletes the files extracted from an archive, using the 
 
 - Original contents of overwritten files can't be recovered; try right-click → Properties → Previous Versions.
 - If extraction was cancelled, the unfinished file shows as Content differs or Size differs; select it manually.
-- Auto-renamed copies (e.g. `a (1).txt`) are not detected.
+- Renamed copies are detected in three formats: `a_1.txt` (7-Zip), `a(1).txt` (WinRAR) and `a (1).txt`. CRC checking must be on.
 - USB drives and network locations have no Recycle Bin; deletion there is permanent.
 - Overwrite detection works on NTFS only.
 - The exe is unsigned. If Windows shows “Windows protected your PC”, click “More info → Run anyway”.
