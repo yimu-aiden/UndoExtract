@@ -4,7 +4,7 @@
 
 ## 中文
 
-撤销解压：根据原压缩包，找出并删除这次解压出的文件。适用于误解压到当前文件夹或桌面、文件散落并和原有文件混在一起的情况。
+Windows 上的撤销解压工具：根据原压缩包（zip、7z、rar 等），找出并删除这次解压出的文件。适用于误解压到当前文件夹或桌面、文件散落并和原有文件混在一起的情况。
 
 ![中文界面](docs/screenshot.png)
 
@@ -68,7 +68,7 @@ py build.py
 
 ## English
 
-Undo an unzip: finds and deletes the files extracted from an archive, using the original archive. For when an archive was extracted into the wrong folder or the desktop and its files got mixed with yours.
+Undo an unzip on Windows: finds and deletes the files a zip, 7z or rar archive extracted, using the original archive. For archives extracted into the wrong folder or the desktop.
 
 ![English UI](docs/screenshot-en.png)
 
